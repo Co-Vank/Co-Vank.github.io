@@ -1,666 +1,617 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Activity, 
-  AlertTriangle, 
-  ArrowRight, 
-  BarChart3, 
-  CheckCircle2, 
-  ChevronRight, 
-  Cpu, 
-  Database, 
-  Globe, 
-  Layers, 
-  Menu, 
-  ShieldCheck, 
-  TrendingUp, 
-  X,
-  Zap,
-  Mail,
-  User,
-  Building
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HELIX Sensors | Real-Time Pipeline Monitoring</title>
+    
+    <!-- 1. Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. Configure Custom Animations for Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'spin-slow': 'spin 3s linear infinite',
+                        'fade-in-up': 'fadeInUp 0.5s ease-out',
+                        'width-100': 'width100 1s ease-out forwards'
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        width100: {
+                            '0%': { width: '0%' },
+                            '100%': { width: '100%' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 
-// --- Shared Components ---
+    <!-- 3. Load React and Dependencies -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel translates JSX in the browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide-react.min.js"></script>
+</head>
+<body class="bg-[#050F1E] text-white">
+    <div id="root"></div>
 
-const ContactModal = ({ isOpen, onClose, title = "Get in Touch" }) => {
-  if (!isOpen) return null;
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // In a real app, this would send data to a backend
-    alert("Thank you! Your request has been received. Our team will contact you shortly.");
-    onClose();
-  };
-
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#050F1E]/80 backdrop-blur-sm">
-      <div className="bg-[#0B1C33] border border-slate-700 rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-up">
-        <div className="p-6 border-b border-slate-700 flex justify-between items-center">
-          <h3 className="text-xl font-bold text-white">{title}</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
-            <X size={24} />
-          </button>
-        </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Full Name</label>
-            <div className="relative">
-              <User className="absolute left-3 top-3 text-slate-500" size={18} />
-              <input type="text" required className="w-full bg-[#050F1E] border border-slate-700 rounded p-2.5 pl-10 text-white focus:border-cyan-500 focus:outline-none transition-colors" placeholder="John Doe" />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Company Email</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-3 text-slate-500" size={18} />
-              <input type="email" required className="w-full bg-[#050F1E] border border-slate-700 rounded p-2.5 pl-10 text-white focus:border-cyan-500 focus:outline-none transition-colors" placeholder="john@pipeline-corp.com" />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Company / Organization</label>
-            <div className="relative">
-              <Building className="absolute left-3 top-3 text-slate-500" size={18} />
-              <input type="text" required className="w-full bg-[#050F1E] border border-slate-700 rounded p-2.5 pl-10 text-white focus:border-cyan-500 focus:outline-none transition-colors" placeholder="Global Energy Inc." />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Interest</label>
-            <select className="w-full bg-[#050F1E] border border-slate-700 rounded p-2.5 text-white focus:border-cyan-500 focus:outline-none transition-colors">
-              <option>Pilot Program / Installation</option>
-              <option>Investor Inquiry</option>
-              <option>Technical Specs Request</option>
-              <option>Other</option>
-            </select>
-          </div>
-          <button type="submit" className="w-full bg-cyan-500 hover:bg-cyan-600 text-[#0B1C33] font-bold py-3 rounded transition-all mt-4">
-            Submit Request
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-};
-
-// --- Page Components ---
-
-const Navbar = ({ onOpenModal }) => {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const navLinks = [
-    { name: 'Technology', href: '#technology' },
-    { name: 'Economics', href: '#economics' },
-    { name: 'Comparison', href: '#comparison' },
-    { name: 'About', href: '#about' },
-  ];
-
-  return (
-    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-[#0B1C33]/95 backdrop-blur-md shadow-lg py-3' : 'bg-transparent py-5'}`}>
-      <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-        {/* Logo */}
-        <div className="flex items-center gap-2 group cursor-pointer" onClick={() => window.scrollTo(0,0)}>
-          <div className="relative w-8 h-8 flex items-center justify-center">
-            <div className="absolute inset-0 border-2 border-cyan-400 rounded-full animate-spin-slow opacity-70"></div>
-            <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
-          </div>
-          <span className="text-xl font-bold tracking-wider text-white">
-            HELIX <span className="text-cyan-400">SENSORS</span>
-          </span>
-        </div>
-
-        {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <a 
-              key={link.name} 
-              href={link.href} 
-              className="text-sm font-medium text-slate-300 hover:text-cyan-400 transition-colors uppercase tracking-wide"
-            >
-              {link.name}
-            </a>
-          ))}
-          <button 
-            onClick={() => onOpenModal("Request Demo")}
-            className="bg-cyan-500 hover:bg-cyan-600 text-[#0B1C33] px-5 py-2 rounded-sm font-bold transition-all transform hover:scale-105"
-          >
-            Request Demo
-          </button>
-        </div>
-
-        {/* Mobile Menu Toggle */}
-        <button 
-          className="md:hidden text-white"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          {isMobileMenuOpen ? <X /> : <Menu />}
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="absolute top-full left-0 right-0 bg-[#0B1C33] border-t border-slate-700 p-6 md:hidden flex flex-col gap-4 shadow-xl">
-          {navLinks.map((link) => (
-            <a 
-              key={link.name} 
-              href={link.href}
-              className="text-slate-300 hover:text-cyan-400 py-2 block"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              {link.name}
-            </a>
-          ))}
-          <button 
-            onClick={() => {
-              setIsMobileMenuOpen(false);
-              onOpenModal("Request Demo");
-            }}
-            className="bg-cyan-500 text-[#0B1C33] px-5 py-3 rounded-sm font-bold w-full"
-          >
-            Request Demo
-          </button>
-        </div>
-      )}
-    </nav>
-  );
-};
-
-const Hero = ({ onOpenModal }) => {
-  const scrollToEconomics = () => {
-    const element = document.getElementById('economics');
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  return (
-    <section className="relative min-h-screen flex items-center pt-20 overflow-hidden bg-[#050F1E]">
-      {/* Background Elements */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute top-0 right-0 w-2/3 h-full bg-gradient-to-l from-[#0D2542] to-transparent opacity-40"></div>
-        {/* Abstract "Pipeline" Curves */}
-        <svg className="absolute right-0 top-1/2 -translate-y-1/2 w-1/2 h-full opacity-20 pointer-events-none" viewBox="0 0 400 800" fill="none">
-           <path d="M400 100 C 200 100, 200 300, 50 400 C 200 500, 200 700, 400 700" stroke="#22D3EE" strokeWidth="2" fill="none" />
-           <path d="M400 150 C 250 150, 250 350, 100 450 C 250 550, 250 750, 400 750" stroke="#22D3EE" strokeWidth="1" strokeDasharray="10 5" fill="none" />
-        </svg>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center relative z-10">
-        <div className="space-y-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-900/30 border border-cyan-500/30 rounded-full text-cyan-400 text-xs font-bold tracking-widest uppercase">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-            Live Monitoring System
-          </div>
-          
-          <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight">
-            Real-Time Pipeline <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600">
-              Defect Detection
-            </span>
-          </h1>
-          
-          <p className="text-lg text-slate-300 max-w-lg leading-relaxed border-l-2 border-cyan-500/50 pl-4">
-            No pigs. No shutdowns. Just continuous, intelligent monitoring that tells you what to fix and when.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4">
-            <button 
-              onClick={() => onOpenModal("Explore Solution")}
-              className="bg-cyan-500 hover:bg-cyan-600 text-[#0B1C33] px-8 py-4 rounded-sm font-bold flex items-center justify-center gap-2 transition-all hover:translate-x-1"
-            >
-              Explore Solution <ArrowRight size={20} />
-            </button>
-            <button 
-              onClick={scrollToEconomics}
-              className="border border-slate-600 hover:border-cyan-400 text-slate-300 hover:text-white px-8 py-4 rounded-sm font-medium transition-all"
-            >
-              Calculate Savings
-            </button>
-          </div>
-        </div>
-
-        {/* Hero Visual */}
-        <div className="relative h-[400px] md:h-[500px] bg-gradient-to-br from-[#0B1C33] to-[#112946] rounded-xl border border-slate-700/50 p-6 shadow-2xl flex flex-col justify-center items-center group overflow-hidden">
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
-          
-          {/* Simulated 3D Pipe */}
-          <div className="relative w-full h-48 bg-gradient-to-r from-slate-700 via-slate-500 to-slate-700 rounded-lg transform -rotate-12 shadow-2xl flex items-center justify-center overflow-hidden">
-             {/* The "Wrap" */}
-             <div className="absolute inset-y-0 left-1/3 right-1/3 bg-cyan-500/20 border-x border-cyan-400/50 backdrop-blur-sm z-10 animate-pulse"></div>
-             {/* Data Flow Particles */}
-             <div className="absolute inset-0 flex items-center justify-around opacity-50">
-                <div className="w-1 h-1 bg-cyan-300 rounded-full animate-ping"></div>
-                <div className="w-1 h-1 bg-white rounded-full animate-ping delay-75"></div>
-                <div className="w-1 h-1 bg-cyan-300 rounded-full animate-ping delay-150"></div>
-             </div>
-          </div>
-
-          <div className="absolute bottom-8 left-8 right-8 bg-[#050F1E]/90 backdrop-blur border border-slate-700 p-4 rounded-lg">
-             <div className="flex justify-between items-center mb-2">
-                <span className="text-xs text-slate-400 uppercase font-bold">System Status</span>
-                <span className="text-xs text-green-400 font-bold flex items-center gap-1"><CheckCircle2 size={12}/> Nominal</span>
-             </div>
-             <div className="space-y-2">
-                <div className="h-1 bg-slate-700 rounded-full overflow-hidden">
-                   <div className="h-full bg-cyan-500 w-3/4"></div>
-                </div>
-                <div className="flex justify-between text-[10px] text-slate-400 font-mono">
-                   <span>Pressure: 840 PSI</span>
-                   <span>Strain: 0.02%</span>
-                </div>
-             </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const StatCard = ({ number, label, subtext, highlight = false }) => (
-  <div className={`p-6 rounded-lg border ${highlight ? 'bg-cyan-900/10 border-cyan-500/50' : 'bg-[#0B1C33] border-slate-700'} hover:border-cyan-400/50 transition-all`}>
-    <h3 className={`text-4xl md:text-5xl font-bold mb-2 ${highlight ? 'text-cyan-400' : 'text-white'}`}>{number}</h3>
-    <p className="text-lg font-semibold text-slate-200 mb-2">{label}</p>
-    <p className="text-sm text-slate-400 leading-snug">{subtext}</p>
-  </div>
-);
-
-const TheGap = () => {
-  return (
-    <section className="py-20 bg-[#050F1E]">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">The Detection Gap</h2>
-          <p className="text-slate-400 max-w-2xl mx-auto">
-            Despite billions spent on inspections, the industry is flying blind. Traditional tools are infrequent, expensive, and often miss the critical moment of failure.
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard 
-            number="72%" 
-            label="Manual Detection" 
-            subtext="of incidents are still found by people on site, not by monitoring technology."
-            highlight={true}
-          />
-          <StatCard 
-            number="$2.23B" 
-            label="Lost Annually" 
-            subtext="Cost of US pipeline incidents in 2024 alone (~1.45 incidents/day)."
-          />
-          <StatCard 
-            number="30-40%" 
-            label="Unpiggable" 
-            subtext="of pipelines cannot be inspected by robots due to bends or diameter changes."
-          />
-           <StatCard 
-            number="5 Years" 
-            label="Blind Spots" 
-            subtext="Standard interval between pigging runs, leaving operators blind 99% of the time."
-          />
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const FeatureItem = ({ icon: Icon, title, desc }) => (
-  <div className="flex gap-4">
-    <div className="flex-shrink-0 w-12 h-12 bg-[#0B1C33] border border-cyan-500/30 rounded-lg flex items-center justify-center text-cyan-400">
-      <Icon size={24} />
-    </div>
-    <div>
-      <h4 className="text-white font-bold text-lg mb-1">{title}</h4>
-      <p className="text-slate-400 text-sm leading-relaxed">{desc}</p>
-    </div>
-  </div>
-);
-
-const Technology = () => {
-  return (
-    <section id="technology" className="py-24 bg-[#0B1C33] relative overflow-hidden">
-      {/* Decorative background grid */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.03)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
-
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-16 items-center">
-          <div>
-            <div className="text-cyan-400 font-bold tracking-widest uppercase text-sm mb-4">HELIX Solution</div>
-            <h2 className="text-4xl font-bold text-white mb-6">Smart Pipe Technology</h2>
-            <p className="text-slate-300 mb-8 text-lg">
-              A rugged, flexible sensor wrap that bonds to pipelines during manufacturing or retrofitting. 
-              It continuously detects cracks, corrosion, and strain—even on "unpiggable" lines.
-            </p>
-
-            <div className="space-y-8">
-              <FeatureItem 
-                icon={Activity} 
-                title="RF/TDR Traces" 
-                desc="Detects impedance shifts caused by corrosion, disbondment, or crack initiation instantly."
-              />
-              <FeatureItem 
-                icon={Zap} 
-                title="Resonant RF Patches" 
-                desc="Tracks sub-millimeter cracks via shifting frequency signatures with extreme precision."
-              />
-              <FeatureItem 
-                icon={Layers} 
-                title="Strain Mesh" 
-                desc="Printed gauges sense bending, pressure cycling, and fatigue in real-time."
-              />
-              <FeatureItem 
-                icon={Cpu} 
-                title="Edge Computing Node" 
-                desc="Low-power unit fuses sensor data and scores it locally, sending only critical alerts wirelessy."
-              />
-            </div>
-          </div>
-
-          <div className="relative">
-            {/* Diagram of the layers */}
-            <div className="bg-[#050F1E] border border-slate-700 rounded-xl p-8 relative shadow-2xl">
-              <div className="absolute -top-4 -right-4 bg-cyan-500 text-[#050F1E] font-bold px-4 py-1 rounded shadow-lg transform rotate-2">
-                Patented Tech
-              </div>
-              
-              <h3 className="text-white text-center font-bold mb-8">Multilayer Sensor Architecture</h3>
-              
-              <div className="space-y-4">
-                {/* Layer 1 */}
-                <div className="h-16 bg-gradient-to-r from-slate-600 to-slate-500 rounded-lg transform perspective-1000 rotate-x-12 translate-y-2 border-l-4 border-slate-400 flex items-center justify-center text-slate-300 font-mono text-xs shadow-lg">
-                  Protective Outer Shell
-                </div>
-                {/* Layer 2 */}
-                <div className="h-16 bg-gradient-to-r from-cyan-900/80 to-blue-900/80 rounded-lg transform perspective-1000 rotate-x-12 -translate-y-2 border-l-4 border-cyan-500 flex items-center justify-center text-cyan-200 font-mono text-xs shadow-lg backdrop-blur-sm z-10">
-                  <Activity className="mr-2 w-4 h-4"/> Sensing Matrix (RF + Strain)
-                </div>
-                {/* Layer 3 */}
-                <div className="h-16 bg-gradient-to-r from-gray-700 to-gray-600 rounded-lg transform perspective-1000 rotate-x-12 -translate-y-6 border-l-4 border-gray-400 flex items-center justify-center text-gray-300 font-mono text-xs shadow-lg -z-0">
-                   Base Pipe (Steel/Composite)
-                </div>
-              </div>
-
-              <div className="mt-8 pt-8 border-t border-slate-700 text-center">
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center">
-                     <div className="text-2xl font-bold text-white">100%</div>
-                     <div className="text-xs text-slate-400 uppercase">Coverage</div>
-                  </div>
-                   <div className="text-center">
-                     <div className="text-2xl font-bold text-white">0</div>
-                     <div className="text-xs text-slate-400 uppercase">Downtime</div>
-                  </div>
-                   <div className="text-center">
-                     <div className="text-2xl font-bold text-white">~30 Yr</div>
-                     <div className="text-xs text-slate-400 uppercase">Lifespan</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const ComparisonTable = () => {
-  return (
-    <section id="comparison" className="py-20 bg-[#050F1E]">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-white mb-4">Old Way vs. The HELIX Way</h2>
-          <p className="text-slate-400">Why operators are switching from periodic inspections to continuous monitoring.</p>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr>
-                <th className="p-4 border-b border-slate-700 text-slate-400 font-medium w-1/3">Feature</th>
-                <th className="p-4 border-b border-slate-700 text-slate-400 font-medium w-1/3">Standard "Smart Pig"</th>
-                <th className="p-4 border-b border-cyan-500 bg-cyan-900/10 text-cyan-400 font-bold text-lg w-1/3">HELIX Solution</th>
-              </tr>
-            </thead>
-            <tbody className="text-slate-200">
-              <tr className="group hover:bg-slate-800/30 transition-colors">
-                <td className="p-4 border-b border-slate-800 font-bold">Frequency</td>
-                <td className="p-4 border-b border-slate-800 text-slate-400">Every 3-5 Years</td>
-                <td className="p-4 border-b border-cyan-900/30 bg-cyan-900/5 text-white font-semibold">Continuous (24/7)</td>
-              </tr>
-              <tr className="group hover:bg-slate-800/30 transition-colors">
-                <td className="p-4 border-b border-slate-800 font-bold">Coverage</td>
-                <td className="p-4 border-b border-slate-800 text-slate-400">60-70% (Limited by bends)</td>
-                <td className="p-4 border-b border-cyan-900/30 bg-cyan-900/5 text-white font-semibold">100% (Any geometry)</td>
-              </tr>
-              {/* Corrected Layout for Operational Impact */}
-              <tr className="group hover:bg-slate-800/30 transition-colors">
-                <td className="p-4 border-b border-slate-800 font-bold">Operational Impact</td>
-                <td className="p-4 border-b border-slate-800 text-red-400">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle size={16}/> Requires Downtime
-                  </div>
-                </td>
-                <td className="p-4 border-b border-cyan-900/30 bg-cyan-900/5 text-green-400">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 size={16}/> No Interruption
-                  </div>
-                </td>
-              </tr>
-               <tr className="group hover:bg-slate-800/30 transition-colors">
-                <td className="p-4 border-b border-slate-800 font-bold">Data Insight</td>
-                <td className="p-4 border-b border-slate-800 text-slate-400">Snapshot in time (Historical)</td>
-                <td className="p-4 border-b border-cyan-900/30 bg-cyan-900/5 text-white font-semibold">Predictive Trends</td>
-              </tr>
-               <tr className="group hover:bg-slate-800/30 transition-colors">
-                <td className="p-4 border-b border-slate-800 font-bold">Cost Model</td>
-                <td className="p-4 border-b border-slate-800 text-slate-400">High CapEx spikes</td>
-                <td className="p-4 border-b border-cyan-900/30 bg-cyan-900/5 text-white font-semibold">OpEx Friendly / SaaS</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const Economics = ({ onOpenModal }) => {
-  return (
-    <section id="economics" className="py-20 bg-gradient-to-b from-[#0B1C33] to-[#050F1E]">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid md:grid-cols-2 gap-12">
-          <div>
-            <div className="text-cyan-400 font-bold tracking-widest uppercase text-sm mb-4">The Bottom Line</div>
-            <h2 className="text-4xl font-bold text-white mb-6">Superior Economics</h2>
-            <p className="text-slate-300 mb-6">
-              HELIX isn't just a safety tool; it's a financial asset. By eliminating pigging runs, reducing insurance premiums, and preventing catastrophic leaks, the system pays for itself in under 5 years.
-            </p>
-            
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              <div className="bg-[#050F1E] p-4 rounded border border-slate-700 hover:border-cyan-500/50 transition-colors group">
-                <div className="text-3xl font-bold text-white mb-1 group-hover:text-cyan-400 transition-colors">55%</div>
-                <div className="text-sm text-slate-400">TCO Reduction (10 Yr)</div>
-              </div>
-              <div className="bg-[#050F1E] p-4 rounded border border-slate-700 hover:border-cyan-500/50 transition-colors group">
-                <div className="text-3xl font-bold text-white mb-1 group-hover:text-cyan-400 transition-colors">4.1 Yrs</div>
-                <div className="text-sm text-slate-400">Payback Period</div>
-              </div>
-              <div className="bg-[#050F1E] p-4 rounded border border-slate-700 hover:border-cyan-500/50 transition-colors group">
-                <div className="text-3xl font-bold text-cyan-400 mb-1">~245%</div>
-                <div className="text-sm text-slate-400">5-Year IRR</div>
-              </div>
-              <div className="bg-[#050F1E] p-4 rounded border border-slate-700 hover:border-cyan-500/50 transition-colors group">
-                <div className="text-3xl font-bold text-green-400 mb-1">$8.6M</div>
-                <div className="text-sm text-slate-400">Annual Savings</div>
-              </div>
-            </div>
-
-            <button 
-              onClick={() => onOpenModal("Detailed Cost Model Request")}
-              className="text-cyan-400 font-bold flex items-center gap-2 hover:gap-4 transition-all"
-            >
-              View Detailed Cost Model <ArrowRight size={18} />
-            </button>
-          </div>
-
-          <div className="flex flex-col justify-center space-y-6">
-            <h3 className="text-white font-bold mb-2">10-Year Cumulative Cost Comparison</h3>
-            
-            {/* Simple Bar Chart Visualization */}
-            <div className="space-y-4">
-              <div>
-                <div className="flex justify-between text-sm text-slate-300 mb-1">
-                  <span>Traditional Pigging (Periodic)</span>
-                  <span>$5.0M</span>
-                </div>
-                <div className="h-8 bg-slate-800 rounded-sm overflow-hidden relative">
-                   <div className="absolute top-0 left-0 h-full bg-red-500/80 w-full animate-width-100"></div>
-                </div>
-                <p className="text-xs text-slate-500 mt-1">Includes downtime, setup fees, and analysis.</p>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-sm text-slate-300 mb-1">
-                  <span>HELIX Solution (Hardware + SaaS)</span>
-                  <span className="text-cyan-400 font-bold">$2.3M</span>
-                </div>
-                <div className="h-8 bg-slate-800 rounded-sm overflow-hidden relative">
-                   <div className="absolute top-0 left-0 h-full bg-cyan-500 w-[46%]"></div>
-                </div>
-                 <p className="text-xs text-slate-500 mt-1">Includes installation and annual monitoring subscription.</p>
-              </div>
-            </div>
-
-            <div className="bg-cyan-900/20 border border-cyan-500/30 p-6 rounded-lg mt-4">
-              <h4 className="text-cyan-400 font-bold mb-2 flex items-center gap-2"><TrendingUp size={18}/> Investor Note</h4>
-              <p className="text-slate-300 text-sm">
-                HELIX operates on a hybrid model: One-time hardware installation (~5% of pipe cost) + Recurring high-margin SaaS ($2k-5k/km/year).
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-const Footer = ({ onOpenModal }) => {
-  return (
-    <footer id="about" className="bg-[#020617] border-t border-slate-800 pt-16 pb-8">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="grid md:grid-cols-4 gap-12 mb-12">
-          <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-6 h-6 bg-cyan-400 rounded-full"></div>
-              <span className="text-xl font-bold tracking-wider text-white">
-                HELIX <span className="text-cyan-400">SENSORS</span>
-              </span>
-            </div>
-            <p className="text-slate-400 max-w-sm mb-6">
-              Transforming pipeline integrity management with continuous, data-driven intelligence.
-            </p>
-            <div className="flex gap-4">
-               {/* Social placeholders */}
-               <div className="w-8 h-8 bg-slate-800 rounded flex items-center justify-center text-slate-400 hover:bg-cyan-500 hover:text-[#020617] cursor-pointer transition-colors"><Globe size={16}/></div>
-               <div className="w-8 h-8 bg-slate-800 rounded flex items-center justify-center text-slate-400 hover:bg-cyan-500 hover:text-[#020617] cursor-pointer transition-colors"><Database size={16}/></div>
-            </div>
-          </div>
-
-          <div>
-            <h4 className="text-white font-bold mb-4">Company</h4>
-            <ul className="space-y-2 text-slate-400 text-sm">
-              <li className="hover:text-cyan-400 cursor-pointer">About Us</li>
-              <li className="hover:text-cyan-400 cursor-pointer">Careers</li>
-              <li className="hover:text-cyan-400 cursor-pointer">News & Press</li>
-              <li className="hover:text-cyan-400 cursor-pointer">Investor Relations</li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-white font-bold mb-4">Contact</h4>
-            <ul className="space-y-2 text-slate-400 text-sm">
-              <li>info@helixsensors.com</li>
-              <li>1-800-HELIX-01</li>
-              <li className="pt-2">
-                <button 
-                  onClick={() => onOpenModal("Contact Sales")}
-                  className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/50 px-4 py-2 rounded hover:bg-cyan-500 hover:text-[#020617] transition-colors w-full"
-                >
-                  Contact Sales
-                </button>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-slate-500 text-xs">
-            © 2025 Helix Sensors Inc. All rights reserved.
-          </p>
-          <div className="flex gap-6 mt-4 md:mt-0 text-slate-500 text-xs">
-            <span className="hover:text-slate-300 cursor-pointer">Privacy Policy</span>
-            <span className="hover:text-slate-300 cursor-pointer">Terms of Service</span>
-          </div>
-        </div>
+    <!-- 4. Your React Code -->
+    <script type="text/babel">
+        // Access React functions from the global scope
+        const { useState, useEffect } = React;
         
-        <div className="mt-8 flex justify-center gap-8 text-center">
-            <div className="space-y-1">
-                <div className="w-12 h-12 mx-auto bg-slate-800 rounded-full flex items-center justify-center text-cyan-400"><Activity size={20}/></div>
-                <div className="text-cyan-400 font-bold text-sm uppercase">Prolong</div>
+        // Access Icons from the lucideReact global object
+        const { 
+            Activity, AlertTriangle, ArrowRight, BarChart3, CheckCircle2, 
+            ChevronRight, Cpu, Database, Globe, Layers, Menu, ShieldCheck, 
+            TrendingUp, X, Zap, Mail, User, Building 
+        } = lucideReact;
+
+        // --- Shared Components ---
+
+        const ContactModal = ({ isOpen, onClose, title = "Get in Touch" }) => {
+            if (!isOpen) return null;
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                alert("Thank you! Your request has been received. Our team will contact you shortly.");
+                onClose();
+            };
+
+            return (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#050F1E]/80 backdrop-blur-sm">
+                    <div className="bg-[#0B1C33] border border-slate-700 rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-up">
+                        <div className="p-6 border-b border-slate-700 flex justify-between items-center">
+                            <h3 className="text-xl font-bold text-white">{title}</h3>
+                            <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-300 mb-1">Full Name</label>
+                                <div className="relative">
+                                    <User className="absolute left-3 top-3 text-slate-500" size={18} />
+                                    <input type="text" required className="w-full bg-[#050F1E] border border-slate-700 rounded p-2.5 pl-10 text-white focus:border-cyan-500 focus:outline-none transition-colors" placeholder="John Doe" />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-300 mb-1">Company Email</label>
+                                <div className="relative">
+                                    <Mail className="absolute left-3 top-3 text-slate-500" size={18} />
+                                    <input type="email" required className="w-full bg-[#050F1E] border border-slate-700 rounded p-2.5 pl-10 text-white focus:border-cyan-500 focus:outline-none transition-colors" placeholder="john@pipeline-corp.com" />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-300 mb-1">Company / Organization</label>
+                                <div className="relative">
+                                    <Building className="absolute left-3 top-3 text-slate-500" size={18} />
+                                    <input type="text" required className="w-full bg-[#050F1E] border border-slate-700 rounded p-2.5 pl-10 text-white focus:border-cyan-500 focus:outline-none transition-colors" placeholder="Global Energy Inc." />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-300 mb-1">Interest</label>
+                                <select className="w-full bg-[#050F1E] border border-slate-700 rounded p-2.5 text-white focus:border-cyan-500 focus:outline-none transition-colors">
+                                    <option>Pilot Program / Installation</option>
+                                    <option>Investor Inquiry</option>
+                                    <option>Technical Specs Request</option>
+                                    <option>Other</option>
+                                </select>
+                            </div>
+                            <button type="submit" className="w-full bg-cyan-500 hover:bg-cyan-600 text-[#0B1C33] font-bold py-3 rounded transition-all mt-4">
+                                Submit Request
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Page Components ---
+
+        const Navbar = ({ onOpenModal }) => {
+            const [isScrolled, setIsScrolled] = useState(false);
+            const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+            useEffect(() => {
+                const handleScroll = () => {
+                    setIsScrolled(window.scrollY > 20);
+                };
+                window.addEventListener('scroll', handleScroll);
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
+
+            const navLinks = [
+                { name: 'Technology', href: '#technology' },
+                { name: 'Economics', href: '#economics' },
+                { name: 'Comparison', href: '#comparison' },
+                { name: 'About', href: '#about' },
+            ];
+
+            return (
+                <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-[#0B1C33]/95 backdrop-blur-md shadow-lg py-3' : 'bg-transparent py-5'}`}>
+                    <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
+                        <div className="flex items-center gap-2 group cursor-pointer" onClick={() => window.scrollTo(0,0)}>
+                            <div className="relative w-8 h-8 flex items-center justify-center">
+                                <div className="absolute inset-0 border-2 border-cyan-400 rounded-full animate-spin-slow opacity-70"></div>
+                                <div className="w-2 h-2 bg-cyan-400 rounded-full"></div>
+                            </div>
+                            <span className="text-xl font-bold tracking-wider text-white">
+                                HELIX <span className="text-cyan-400">SENSORS</span>
+                            </span>
+                        </div>
+
+                        <div className="hidden md:flex items-center gap-8">
+                            {navLinks.map((link) => (
+                                <a key={link.name} href={link.href} className="text-sm font-medium text-slate-300 hover:text-cyan-400 transition-colors uppercase tracking-wide">
+                                    {link.name}
+                                </a>
+                            ))}
+                            <button onClick={() => onOpenModal("Request Demo")} className="bg-cyan-500 hover:bg-cyan-600 text-[#0B1C33] px-5 py-2 rounded-sm font-bold transition-all transform hover:scale-105">
+                                Request Demo
+                            </button>
+                        </div>
+
+                        <button className="md:hidden text-white" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+                            {isMobileMenuOpen ? <X /> : <Menu />}
+                        </button>
+                    </div>
+
+                    {isMobileMenuOpen && (
+                        <div className="absolute top-full left-0 right-0 bg-[#0B1C33] border-t border-slate-700 p-6 md:hidden flex flex-col gap-4 shadow-xl">
+                            {navLinks.map((link) => (
+                                <a key={link.name} href={link.href} className="text-slate-300 hover:text-cyan-400 py-2 block" onClick={() => setIsMobileMenuOpen(false)}>
+                                    {link.name}
+                                </a>
+                            ))}
+                            <button onClick={() => { setIsMobileMenuOpen(false); onOpenModal("Request Demo"); }} className="bg-cyan-500 text-[#0B1C33] px-5 py-3 rounded-sm font-bold w-full">
+                                Request Demo
+                            </button>
+                        </div>
+                    )}
+                </nav>
+            );
+        };
+
+        const Hero = ({ onOpenModal }) => {
+            const scrollToEconomics = () => {
+                const element = document.getElementById('economics');
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                }
+            };
+
+            return (
+                <section className="relative min-h-screen flex items-center pt-20 overflow-hidden bg-[#050F1E]">
+                    <div className="absolute inset-0 z-0">
+                        <div className="absolute top-0 right-0 w-2/3 h-full bg-gradient-to-l from-[#0D2542] to-transparent opacity-40"></div>
+                        <svg className="absolute right-0 top-1/2 -translate-y-1/2 w-1/2 h-full opacity-20 pointer-events-none" viewBox="0 0 400 800" fill="none">
+                            <path d="M400 100 C 200 100, 200 300, 50 400 C 200 500, 200 700, 400 700" stroke="#22D3EE" strokeWidth="2" fill="none" />
+                            <path d="M400 150 C 250 150, 250 350, 100 450 C 250 550, 250 750, 400 750" stroke="#22D3EE" strokeWidth="1" strokeDasharray="10 5" fill="none" />
+                        </svg>
+                    </div>
+
+                    <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center relative z-10">
+                        <div className="space-y-8">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-900/30 border border-cyan-500/30 rounded-full text-cyan-400 text-xs font-bold tracking-widest uppercase">
+                                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                                Live Monitoring System
+                            </div>
+                            
+                            <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight">
+                                Real-Time Pipeline <br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-600">
+                                    Defect Detection
+                                </span>
+                            </h1>
+                            
+                            <p className="text-lg text-slate-300 max-w-lg leading-relaxed border-l-2 border-cyan-500/50 pl-4">
+                                No pigs. No shutdowns. Just continuous, intelligent monitoring that tells you what to fix and when.
+                            </p>
+
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <button onClick={() => onOpenModal("Explore Solution")} className="bg-cyan-500 hover:bg-cyan-600 text-[#0B1C33] px-8 py-4 rounded-sm font-bold flex items-center justify-center gap-2 transition-all hover:translate-x-1">
+                                    Explore Solution <ArrowRight size={20} />
+                                </button>
+                                <button onClick={scrollToEconomics} className="border border-slate-600 hover:border-cyan-400 text-slate-300 hover:text-white px-8 py-4 rounded-sm font-medium transition-all">
+                                    Calculate Savings
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="relative h-[400px] md:h-[500px] bg-gradient-to-br from-[#0B1C33] to-[#112946] rounded-xl border border-slate-700/50 p-6 shadow-2xl flex flex-col justify-center items-center group overflow-hidden">
+                            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
+                            
+                            <div className="relative w-full h-48 bg-gradient-to-r from-slate-700 via-slate-500 to-slate-700 rounded-lg transform -rotate-12 shadow-2xl flex items-center justify-center overflow-hidden">
+                                <div className="absolute inset-y-0 left-1/3 right-1/3 bg-cyan-500/20 border-x border-cyan-400/50 backdrop-blur-sm z-10 animate-pulse"></div>
+                                <div className="absolute inset-0 flex items-center justify-around opacity-50">
+                                    <div className="w-1 h-1 bg-cyan-300 rounded-full animate-ping"></div>
+                                    <div className="w-1 h-1 bg-white rounded-full animate-ping delay-75"></div>
+                                    <div className="w-1 h-1 bg-cyan-300 rounded-full animate-ping delay-150"></div>
+                                </div>
+                            </div>
+
+                            <div className="absolute bottom-8 left-8 right-8 bg-[#050F1E]/90 backdrop-blur border border-slate-700 p-4 rounded-lg">
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="text-xs text-slate-400 uppercase font-bold">System Status</span>
+                                    <span className="text-xs text-green-400 font-bold flex items-center gap-1"><CheckCircle2 size={12}/> Nominal</span>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="h-1 bg-slate-700 rounded-full overflow-hidden">
+                                        <div className="h-full bg-cyan-500 w-3/4"></div>
+                                    </div>
+                                    <div className="flex justify-between text-[10px] text-slate-400 font-mono">
+                                        <span>Pressure: 840 PSI</span>
+                                        <span>Strain: 0.02%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        const StatCard = ({ number, label, subtext, highlight = false }) => (
+            <div className={`p-6 rounded-lg border ${highlight ? 'bg-cyan-900/10 border-cyan-500/50' : 'bg-[#0B1C33] border-slate-700'} hover:border-cyan-400/50 transition-all`}>
+                <h3 className={`text-4xl md:text-5xl font-bold mb-2 ${highlight ? 'text-cyan-400' : 'text-white'}`}>{number}</h3>
+                <p className="text-lg font-semibold text-slate-200 mb-2">{label}</p>
+                <p className="text-sm text-slate-400 leading-snug">{subtext}</p>
             </div>
-            <div className="space-y-1">
-                <div className="w-12 h-12 mx-auto bg-slate-800 rounded-full flex items-center justify-center text-cyan-400"><ShieldCheck size={20}/></div>
-                <div className="text-cyan-400 font-bold text-sm uppercase">Protect</div>
+        );
+
+        const TheGap = () => {
+            return (
+                <section className="py-20 bg-[#050F1E]">
+                    <div className="max-w-7xl mx-auto px-6">
+                        <div className="text-center mb-16">
+                            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">The Detection Gap</h2>
+                            <p className="text-slate-400 max-w-2xl mx-auto">
+                                Despite billions spent on inspections, the industry is flying blind. Traditional tools are infrequent, expensive, and often miss the critical moment of failure.
+                            </p>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <StatCard number="72%" label="Manual Detection" subtext="of incidents are still found by people on site, not by monitoring technology." highlight={true} />
+                            <StatCard number="$2.23B" label="Lost Annually" subtext="Cost of US pipeline incidents in 2024 alone (~1.45 incidents/day)." />
+                            <StatCard number="30-40%" label="Unpiggable" subtext="of pipelines cannot be inspected by robots due to bends or diameter changes." />
+                            <StatCard number="5 Years" label="Blind Spots" subtext="Standard interval between pigging runs, leaving operators blind 99% of the time." />
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        const FeatureItem = ({ icon: Icon, title, desc }) => (
+            <div className="flex gap-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-[#0B1C33] border border-cyan-500/30 rounded-lg flex items-center justify-center text-cyan-400">
+                    <Icon size={24} />
+                </div>
+                <div>
+                    <h4 className="text-white font-bold text-lg mb-1">{title}</h4>
+                    <p className="text-slate-400 text-sm leading-relaxed">{desc}</p>
+                </div>
             </div>
-            <div className="space-y-1">
-                <div className="w-12 h-12 mx-auto bg-slate-800 rounded-full flex items-center justify-center text-cyan-400"><BarChart3 size={20}/></div>
-                <div className="text-cyan-400 font-bold text-sm uppercase">Prosper</div>
-            </div>
-        </div>
-      </div>
-    </footer>
-  );
-};
+        );
 
-const App = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalTitle, setModalTitle] = useState("Get in Touch");
+        const Technology = () => {
+            return (
+                <section id="technology" className="py-24 bg-[#0B1C33] relative overflow-hidden">
+                    <div className="absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.03)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
 
-  const openModal = (title) => {
-    setModalTitle(title || "Get in Touch");
-    setIsModalOpen(true);
-  };
+                    <div className="max-w-7xl mx-auto px-6 relative z-10">
+                        <div className="grid lg:grid-cols-2 gap-16 items-center">
+                            <div>
+                                <div className="text-cyan-400 font-bold tracking-widest uppercase text-sm mb-4">HELIX Solution</div>
+                                <h2 className="text-4xl font-bold text-white mb-6">Smart Pipe Technology</h2>
+                                <p className="text-slate-300 mb-8 text-lg">
+                                    A rugged, flexible sensor wrap that bonds to pipelines during manufacturing or retrofitting. 
+                                    It continuously detects cracks, corrosion, and strain—even on "unpiggable" lines.
+                                </p>
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
+                                <div className="space-y-8">
+                                    <FeatureItem icon={Activity} title="RF/TDR Traces" desc="Detects impedance shifts caused by corrosion, disbondment, or crack initiation instantly." />
+                                    <FeatureItem icon={Zap} title="Resonant RF Patches" desc="Tracks sub-millimeter cracks via shifting frequency signatures with extreme precision." />
+                                    <FeatureItem icon={Layers} title="Strain Mesh" desc="Printed gauges sense bending, pressure cycling, and fatigue in real-time." />
+                                    <FeatureItem icon={Cpu} title="Edge Computing Node" desc="Low-power unit fuses sensor data and scores it locally, sending only critical alerts wirelessy." />
+                                </div>
+                            </div>
 
-  return (
-    <div className="min-h-screen bg-[#050F1E] font-sans selection:bg-cyan-500 selection:text-white">
-      <Navbar onOpenModal={openModal} />
-      <main>
-        <Hero onOpenModal={openModal} />
-        <TheGap />
-        <Technology />
-        <Economics onOpenModal={openModal} />
-        <ComparisonTable />
-      </main>
-      <Footer onOpenModal={openModal} />
-      
-      <ContactModal 
-        isOpen={isModalOpen} 
-        onClose={closeModal} 
-        title={modalTitle}
-      />
-    </div>
-  );
-};
+                            <div className="relative">
+                                <div className="bg-[#050F1E] border border-slate-700 rounded-xl p-8 relative shadow-2xl">
+                                    <div className="absolute -top-4 -right-4 bg-cyan-500 text-[#050F1E] font-bold px-4 py-1 rounded shadow-lg transform rotate-2">
+                                        Patented Tech
+                                    </div>
+                                    
+                                    <h3 className="text-white text-center font-bold mb-8">Multilayer Sensor Architecture</h3>
+                                    
+                                    <div className="space-y-4">
+                                        <div className="h-16 bg-gradient-to-r from-slate-600 to-slate-500 rounded-lg transform perspective-1000 rotate-x-12 translate-y-2 border-l-4 border-slate-400 flex items-center justify-center text-slate-300 font-mono text-xs shadow-lg">
+                                            Protective Outer Shell
+                                        </div>
+                                        <div className="h-16 bg-gradient-to-r from-cyan-900/80 to-blue-900/80 rounded-lg transform perspective-1000 rotate-x-12 -translate-y-2 border-l-4 border-cyan-500 flex items-center justify-center text-cyan-200 font-mono text-xs shadow-lg backdrop-blur-sm z-10">
+                                            <Activity className="mr-2 w-4 h-4"/> Sensing Matrix (RF + Strain)
+                                        </div>
+                                        <div className="h-16 bg-gradient-to-r from-gray-700 to-gray-600 rounded-lg transform perspective-1000 rotate-x-12 -translate-y-6 border-l-4 border-gray-400 flex items-center justify-center text-gray-300 font-mono text-xs shadow-lg -z-0">
+                                            Base Pipe (Steel/Composite)
+                                        </div>
+                                    </div>
 
-export default App;
+                                    <div className="mt-8 pt-8 border-t border-slate-700 text-center">
+                                        <div className="grid grid-cols-3 gap-4">
+                                            <div className="text-center">
+                                                <div className="text-2xl font-bold text-white">100%</div>
+                                                <div className="text-xs text-slate-400 uppercase">Coverage</div>
+                                            </div>
+                                            <div className="text-center">
+                                                <div className="text-2xl font-bold text-white">0</div>
+                                                <div className="text-xs text-slate-400 uppercase">Downtime</div>
+                                            </div>
+                                            <div className="text-center">
+                                                <div className="text-2xl font-bold text-white">~30 Yr</div>
+                                                <div className="text-xs text-slate-400 uppercase">Lifespan</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        const ComparisonTable = () => {
+            return (
+                <section id="comparison" className="py-20 bg-[#050F1E]">
+                    <div className="max-w-7xl mx-auto px-6">
+                        <div className="text-center mb-16">
+                            <h2 className="text-3xl font-bold text-white mb-4">Old Way vs. The HELIX Way</h2>
+                            <p className="text-slate-400">Why operators are switching from periodic inspections to continuous monitoring.</p>
+                        </div>
+
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr>
+                                        <th className="p-4 border-b border-slate-700 text-slate-400 font-medium w-1/3">Feature</th>
+                                        <th className="p-4 border-b border-slate-700 text-slate-400 font-medium w-1/3">Standard "Smart Pig"</th>
+                                        <th className="p-4 border-b border-cyan-500 bg-cyan-900/10 text-cyan-400 font-bold text-lg w-1/3">HELIX Solution</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="text-slate-200">
+                                    <tr className="group hover:bg-slate-800/30 transition-colors">
+                                        <td className="p-4 border-b border-slate-800 font-bold">Frequency</td>
+                                        <td className="p-4 border-b border-slate-800 text-slate-400">Every 3-5 Years</td>
+                                        <td className="p-4 border-b border-cyan-900/30 bg-cyan-900/5 text-white font-semibold">Continuous (24/7)</td>
+                                    </tr>
+                                    <tr className="group hover:bg-slate-800/30 transition-colors">
+                                        <td className="p-4 border-b border-slate-800 font-bold">Coverage</td>
+                                        <td className="p-4 border-b border-slate-800 text-slate-400">60-70% (Limited by bends)</td>
+                                        <td className="p-4 border-b border-cyan-900/30 bg-cyan-900/5 text-white font-semibold">100% (Any geometry)</td>
+                                    </tr>
+                                    <tr className="group hover:bg-slate-800/30 transition-colors">
+                                        <td className="p-4 border-b border-slate-800 font-bold">Operational Impact</td>
+                                        <td className="p-4 border-b border-slate-800 text-red-400">
+                                            <div className="flex items-center gap-2">
+                                                <AlertTriangle size={16}/> Requires Downtime
+                                            </div>
+                                        </td>
+                                        <td className="p-4 border-b border-cyan-900/30 bg-cyan-900/5 text-green-400">
+                                            <div className="flex items-center gap-2">
+                                                <CheckCircle2 size={16}/> No Interruption
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr className="group hover:bg-slate-800/30 transition-colors">
+                                        <td className="p-4 border-b border-slate-800 font-bold">Data Insight</td>
+                                        <td className="p-4 border-b border-slate-800 text-slate-400">Snapshot in time (Historical)</td>
+                                        <td className="p-4 border-b border-cyan-900/30 bg-cyan-900/5 text-white font-semibold">Predictive Trends</td>
+                                    </tr>
+                                    <tr className="group hover:bg-slate-800/30 transition-colors">
+                                        <td className="p-4 border-b border-slate-800 font-bold">Cost Model</td>
+                                        <td className="p-4 border-b border-slate-800 text-slate-400">High CapEx spikes</td>
+                                        <td className="p-4 border-b border-cyan-900/30 bg-cyan-900/5 text-white font-semibold">OpEx Friendly / SaaS</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        const Economics = ({ onOpenModal }) => {
+            return (
+                <section id="economics" className="py-20 bg-gradient-to-b from-[#0B1C33] to-[#050F1E]">
+                    <div className="max-w-7xl mx-auto px-6">
+                        <div className="grid md:grid-cols-2 gap-12">
+                            <div>
+                                <div className="text-cyan-400 font-bold tracking-widest uppercase text-sm mb-4">The Bottom Line</div>
+                                <h2 className="text-4xl font-bold text-white mb-6">Superior Economics</h2>
+                                <p className="text-slate-300 mb-6">
+                                    HELIX isn't just a safety tool; it's a financial asset. By eliminating pigging runs, reducing insurance premiums, and preventing catastrophic leaks, the system pays for itself in under 5 years.
+                                </p>
+                                
+                                <div className="grid grid-cols-2 gap-4 mb-8">
+                                    <div className="bg-[#050F1E] p-4 rounded border border-slate-700 hover:border-cyan-500/50 transition-colors group">
+                                        <div className="text-3xl font-bold text-white mb-1 group-hover:text-cyan-400 transition-colors">55%</div>
+                                        <div className="text-sm text-slate-400">TCO Reduction (10 Yr)</div>
+                                    </div>
+                                    <div className="bg-[#050F1E] p-4 rounded border border-slate-700 hover:border-cyan-500/50 transition-colors group">
+                                        <div className="text-3xl font-bold text-white mb-1 group-hover:text-cyan-400 transition-colors">4.1 Yrs</div>
+                                        <div className="text-sm text-slate-400">Payback Period</div>
+                                    </div>
+                                    <div className="bg-[#050F1E] p-4 rounded border border-slate-700 hover:border-cyan-500/50 transition-colors group">
+                                        <div className="text-3xl font-bold text-cyan-400 mb-1">~245%</div>
+                                        <div className="text-sm text-slate-400">5-Year IRR</div>
+                                    </div>
+                                    <div className="bg-[#050F1E] p-4 rounded border border-slate-700 hover:border-cyan-500/50 transition-colors group">
+                                        <div className="text-3xl font-bold text-green-400 mb-1">$8.6M</div>
+                                        <div className="text-sm text-slate-400">Annual Savings</div>
+                                    </div>
+                                </div>
+
+                                <button onClick={() => onOpenModal("Detailed Cost Model Request")} className="text-cyan-400 font-bold flex items-center gap-2 hover:gap-4 transition-all">
+                                    View Detailed Cost Model <ArrowRight size={18} />
+                                </button>
+                            </div>
+
+                            <div className="flex flex-col justify-center space-y-6">
+                                <h3 className="text-white font-bold mb-2">10-Year Cumulative Cost Comparison</h3>
+                                
+                                <div className="space-y-4">
+                                    <div>
+                                        <div className="flex justify-between text-sm text-slate-300 mb-1">
+                                            <span>Traditional Pigging (Periodic)</span>
+                                            <span>$5.0M</span>
+                                        </div>
+                                        <div className="h-8 bg-slate-800 rounded-sm overflow-hidden relative">
+                                            <div className="absolute top-0 left-0 h-full bg-red-500/80 w-full animate-width-100"></div>
+                                        </div>
+                                        <p className="text-xs text-slate-500 mt-1">Includes downtime, setup fees, and analysis.</p>
+                                    </div>
+
+                                    <div>
+                                        <div className="flex justify-between text-sm text-slate-300 mb-1">
+                                            <span>HELIX Solution (Hardware + SaaS)</span>
+                                            <span className="text-cyan-400 font-bold">$2.3M</span>
+                                        </div>
+                                        <div className="h-8 bg-slate-800 rounded-sm overflow-hidden relative">
+                                            <div className="absolute top-0 left-0 h-full bg-cyan-500 w-[46%]"></div>
+                                        </div>
+                                        <p className="text-xs text-slate-500 mt-1">Includes installation and annual monitoring subscription.</p>
+                                    </div>
+                                </div>
+
+                                <div className="bg-cyan-900/20 border border-cyan-500/30 p-6 rounded-lg mt-4">
+                                    <h4 className="text-cyan-400 font-bold mb-2 flex items-center gap-2"><TrendingUp size={18}/> Investor Note</h4>
+                                    <p className="text-slate-300 text-sm">
+                                        HELIX operates on a hybrid model: One-time hardware installation (~5% of pipe cost) + Recurring high-margin SaaS ($2k-5k/km/year).
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            );
+        };
+
+        const Footer = ({ onOpenModal }) => {
+            return (
+                <footer id="about" className="bg-[#020617] border-t border-slate-800 pt-16 pb-8">
+                    <div className="max-w-7xl mx-auto px-6">
+                        <div className="grid md:grid-cols-4 gap-12 mb-12">
+                            <div className="col-span-1 md:col-span-2">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <div className="w-6 h-6 bg-cyan-400 rounded-full"></div>
+                                    <span className="text-xl font-bold tracking-wider text-white">
+                                        HELIX <span className="text-cyan-400">SENSORS</span>
+                                    </span>
+                                </div>
+                                <p className="text-slate-400 max-w-sm mb-6">
+                                    Transforming pipeline integrity management with continuous, data-driven intelligence.
+                                </p>
+                                <div className="flex gap-4">
+                                    <div className="w-8 h-8 bg-slate-800 rounded flex items-center justify-center text-slate-400 hover:bg-cyan-500 hover:text-[#020617] cursor-pointer transition-colors"><Globe size={16}/></div>
+                                    <div className="w-8 h-8 bg-slate-800 rounded flex items-center justify-center text-slate-400 hover:bg-cyan-500 hover:text-[#020617] cursor-pointer transition-colors"><Database size={16}/></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h4 className="text-white font-bold mb-4">Company</h4>
+                                <ul className="space-y-2 text-slate-400 text-sm">
+                                    <li className="hover:text-cyan-400 cursor-pointer">About Us</li>
+                                    <li className="hover:text-cyan-400 cursor-pointer">Careers</li>
+                                    <li className="hover:text-cyan-400 cursor-pointer">News & Press</li>
+                                    <li className="hover:text-cyan-400 cursor-pointer">Investor Relations</li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <h4 className="text-white font-bold mb-4">Contact</h4>
+                                <ul className="space-y-2 text-slate-400 text-sm">
+                                    <li>info@helixsensors.com</li>
+                                    <li>1-800-HELIX-01</li>
+                                    <li className="pt-2">
+                                        <button onClick={() => onOpenModal("Contact Sales")} className="bg-cyan-500/10 text-cyan-400 border border-cyan-500/50 px-4 py-2 rounded hover:bg-cyan-500 hover:text-[#020617] transition-colors w-full">
+                                            Contact Sales
+                                        </button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center">
+                            <p className="text-slate-500 text-xs">
+                                © 2025 Helix Sensors Inc. All rights reserved.
+                            </p>
+                            <div className="flex gap-6 mt-4 md:mt-0 text-slate-500 text-xs">
+                                <span className="hover:text-slate-300 cursor-pointer">Privacy Policy</span>
+                                <span className="hover:text-slate-300 cursor-pointer">Terms of Service</span>
+                            </div>
+                        </div>
+                        
+                        <div className="mt-8 flex justify-center gap-8 text-center">
+                            <div className="space-y-1">
+                                <div className="w-12 h-12 mx-auto bg-slate-800 rounded-full flex items-center justify-center text-cyan-400"><Activity size={20}/></div>
+                                <div className="text-cyan-400 font-bold text-sm uppercase">Prolong</div>
+                            </div>
+                            <div className="space-y-1">
+                                <div className="w-12 h-12 mx-auto bg-slate-800 rounded-full flex items-center justify-center text-cyan-400"><ShieldCheck size={20}/></div>
+                                <div className="text-cyan-400 font-bold text-sm uppercase">Protect</div>
+                            </div>
+                            <div className="space-y-1">
+                                <div className="w-12 h-12 mx-auto bg-slate-800 rounded-full flex items-center justify-center text-cyan-400"><BarChart3 size={20}/></div>
+                                <div className="text-cyan-400 font-bold text-sm uppercase">Prosper</div>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            );
+        };
+
+        const App = () => {
+            const [isModalOpen, setIsModalOpen] = useState(false);
+            const [modalTitle, setModalTitle] = useState("Get in Touch");
+
+            const openModal = (title) => {
+                setModalTitle(title || "Get in Touch");
+                setIsModalOpen(true);
+            };
+
+            const closeModal = () => {
+                setIsModalOpen(false);
+            };
+
+            return (
+                <div className="min-h-screen bg-[#050F1E] font-sans selection:bg-cyan-500 selection:text-white">
+                    <Navbar onOpenModal={openModal} />
+                    <main>
+                        <Hero onOpenModal={openModal} />
+                        <TheGap />
+                        <Technology />
+                        <Economics onOpenModal={openModal} />
+                        <ComparisonTable />
+                    </main>
+                    <Footer onOpenModal={openModal} />
+                    
+                    <ContactModal isOpen={isModalOpen} onClose={closeModal} title={modalTitle} />
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
