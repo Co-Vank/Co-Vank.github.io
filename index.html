@@ -42,7 +42,7 @@
 <body class="bg-[#050F1E] text-white">
     <div id="root"></div>
 
-    <!-- 4. Your React Code -->
+    <!-- React Code -->
     <script type="text/babel">
         // Access React functions from the global scope
         const { useState, useEffect } = React;
@@ -83,8 +83,6 @@
         const Mail = (props) => <IconBase {...props}><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></IconBase>;
         const User = (props) => <IconBase {...props}><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></IconBase>;
         const Building = (props) => <IconBase {...props}><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></IconBase>;
-
-        // --- Shared Components ---
 
         const ContactModal = ({ isOpen, onClose, title = "Get in Touch" }) => {
             if (!isOpen) return null;
